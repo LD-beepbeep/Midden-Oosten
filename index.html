@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Midden-Oosten Master</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel voor JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Leaflet CSS & JS (Kaart) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f9ff; }
+        .leaflet-popup-content-wrapper { border-radius: 12px; padding: 0; overflow: hidden; }
+        .leaflet-popup-content { margin: 0; }
+        .star-click { cursor: pointer; transition: transform 0.1s; }
+        .star-click:active { transform: scale(1.2); }
+        
+        /* Animatie voor feedback */
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        .pop-in { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- DATA ---
+        const alldata = [
+            // Landen (Blauw)
+            { id: 1, vraag: "Egypte", antwoord: "Cairo", type: "Land", nummer: 1, lat: 26.8206, lng: 30.8025 },
+            { id: 2, vraag: "Cyprus", antwoord: "Nicosia", type: "Land", nummer: 2, lat: 35.1264, lng: 33.4299 },
+            { id: 3, vraag: "Turkije", antwoord: "Ankara", type: "Land", nummer: 3, lat: 38.9637, lng: 35.2433 },
+            { id: 4, vraag: "Georgië", antwoord: "Tbilisi", type: "Land", nummer: 4, lat: 42.3154, lng: 43.3569 },
+            { id: 5, vraag: "Azerbeidzjan", antwoord: "Bakoe", type: "Land", nummer: 5, lat: 40.1431, lng: 47.5769 },
+            { id: 6, vraag: "Armenië", antwoord: "Yerevan", type: "Land", nummer: 6, lat: 40.0691, lng: 45.0382 },
+            { id: 7, vraag: "Iran", antwoord: "Teheran", type: "Land", nummer: 7, lat: 32.4279, lng: 53.6880 },
+            { id: 8, vraag: "Irak", antwoord: "Bagdad", type: "Land", nummer: 8, lat: 33.2232, lng: 43.6793 },
+            { id: 9, vraag: "Syrië", antwoord: "Damaskus", type: "Land", nummer: 9, lat: 34.8021, lng: 38.9968 },
+            { id: 10, vraag: "Libanon", antwoord: "Beirut", type: "Land", nummer: 10, lat: 33.8547, lng: 35.8623 },
+            { id: 11, vraag: "Israël", antwoord: "Jeruzalem", type: "Land", nummer: 11, lat: 31.0461, lng: 34.8516 },
+            { id: 12, vraag: "Palestina", antwoord: "(Jeruzalem)", type: "Gebied", nummer: 12, lat: 31.9522, lng: 35.2332 },
+            { id: 13, vraag: "Jordanië", antwoord: "Amman", type: "Land", nummer: 13, lat: 30.5852, lng: 36.2384 },
+            { id: 14, vraag: "Saudi-Arabië", antwoord: "Riad", type: "Land", nummer: 14, lat: 23.8859, lng: 45.0792 },
+            { id: 15, vraag: "Jemen", antwoord: "Sana", type: "Land", nummer: 15, lat: 15.5527, lng: 48.5164 },
+            { id: 16, vraag: "Oman", antwoord: "Masqat", type: "Land", nummer: 16, lat: 21.4735, lng: 55.9754 },
+            { id: 17, vraag: "Koeweit", antwoord: "Koeweit-stad", type: "Land", nummer: 17, lat: 29.3117, lng: 47.4818 },
+            { id: 18, vraag: "Bahrein", antwoord: "Manama", type: "Land", nummer: 18, lat: 26.0667, lng: 50.5577 },
+            { id: 19, vraag: "Verenigde Arabische Emiraten", antwoord: "Abu Dhabi", type: "Land", nummer: 19, lat: 23.4241, lng: 53.8478 },
+            { id: 20, vraag: "Qatar", antwoord: "Doha", type: "Land", nummer: 20, lat: 25.3548, lng: 51.1839 },
+            { id: 21, vraag: "\"Koerdistan\"", antwoord: "\"Arbil\"", type: "Gebied", nummer: 21, lat: 36.5, lng: 44.5 },
+
+            // Steden (Oranje)
+            { id: 22, vraag: "Mekka", antwoord: "Saudi-Arabië", type: "Stad", nummer: 22, lat: 21.3891, lng: 39.8579 },
+            { id: 23, vraag: "Medina", antwoord: "Saudi-Arabië", type: "Stad", nummer: 23, lat: 24.5247, lng: 39.5692 },
+            { id: 24, vraag: "Nazareth", antwoord: "Israël", type: "Stad", nummer: 24, lat: 32.6996, lng: 35.3035 },
+            { id: 25, vraag: "Tel Aviv", antwoord: "Israël", type: "Stad", nummer: 25, lat: 32.0853, lng: 34.7818 },
+            { id: 26, vraag: "Gaza", antwoord: "Palestina (Gazastrook)", type: "Stad", nummer: 26, lat: 31.5, lng: 34.4667 },
+            { id: 27, vraag: "Dubai", antwoord: "Verenigde Arabische Emiraten", type: "Stad", nummer: 27, lat: 25.2048, lng: 55.2708 },
+            { id: 28, vraag: "Petra (ruïne)", antwoord: "Jordanië", type: "Stad", nummer: 28, lat: 30.3285, lng: 35.4444 },
+            { id: 29, vraag: "Uruk (ruïne)", antwoord: "Irak", type: "Stad", nummer: 29, lat: 31.3222, lng: 45.6361 },
+            { id: 30, vraag: "Babylon (ruïne)", antwoord: "Irak", type: "Stad", nummer: 30, lat: 32.5364, lng: 44.4208 },
+
+            // Natuurkundig (Groen/Blauw)
+            { id: 31, vraag: "Indische Oceaan", antwoord: "Oceaan", type: "Water", nummer: 1, lat: 10.0, lng: 65.0 },
+            { id: 32, vraag: "Middellandse Zee", antwoord: "Zee", type: "Water", nummer: 2, lat: 34.5, lng: 28.0 },
+            { id: 33, vraag: "Levantijnse Zee", antwoord: "Zee", type: "Water", nummer: 3, lat: 33.0, lng: 33.5 },
+            { id: 34, vraag: "Zwarte Zee", antwoord: "Zee", type: "Water", nummer: 4, lat: 43.0, lng: 35.0 },
+            { id: 35, vraag: "Rode Zee", antwoord: "Zee", type: "Water", nummer: 5, lat: 22.0, lng: 38.0 },
+            { id: 36, vraag: "Arabische Zee", antwoord: "Zee", type: "Water", nummer: 6, lat: 18.0, lng: 62.0 },
+            { id: 37, vraag: "Perzische Golf", antwoord: "Golf", type: "Water", nummer: 7, lat: 27.0, lng: 51.0 },
+            { id: 38, vraag: "Golf van Aden", antwoord: "Golf", type: "Water", nummer: 8, lat: 12.5, lng: 48.0 },
+            { id: 39, vraag: "Golf van Oman", antwoord: "Golf", type: "Water", nummer: 9, lat: 24.5, lng: 58.0 },
+            { id: 40, vraag: "Kaspische Zee", antwoord: "Meer (zout)", type: "Water", nummer: 10, lat: 40.0, lng: 51.0 },
+            { id: 41, vraag: "Dode Zee", antwoord: "Meer (zout)", type: "Water", nummer: 11, lat: 31.5, lng: 35.5 },
+            { id: 42, vraag: "Eufraat", antwoord: "Rivier", type: "Rivier", nummer: 12, lat: 34.0, lng: 40.5 },
+            { id: 43, vraag: "Tigris", antwoord: "Rivier", type: "Rivier", nummer: 13, lat: 35.0, lng: 43.5 },
+            { id: 44, vraag: "Jordaan", antwoord: "Rivier", type: "Rivier", nummer: 14, lat: 32.2, lng: 35.56 },
+            { id: 45, vraag: "Sinaï", antwoord: "Woestijn", type: "Landschap", nummer: 15, lat: 29.5, lng: 33.8 },
+            { id: 46, vraag: "Grote Arabische Woestijn", antwoord: "Woestijn", type: "Landschap", nummer: 16, lat: 20.0, lng: 50.0 },
+            { id: 47, vraag: "Kaukasus", antwoord: "Gebergte", type: "Landschap", nummer: 17, lat: 42.5, lng: 44.0 },
+            { id: 48, vraag: "Ararat", antwoord: "Berg", type: "Landschap", nummer: 18, lat: 39.7, lng: 44.3 },
+            { id: 49, vraag: "Arabië", antwoord: "Schiereiland", type: "Landschap", nummer: 19, lat: 24.0, lng: 45.0 },
+            { id: 50, vraag: "Anatolië", antwoord: "Schiereiland", type: "Landschap", nummer: 20, lat: 39.0, lng: 33.0 },
+            { id: 51, vraag: "Suezkanaal", antwoord: "Kanaal", type: "Water", nummer: 21, lat: 30.6, lng: 32.3 },
+            { id: 52, vraag: "Mesopotamië", antwoord: "Gebied", type: "Gebied", nummer: 22, lat: 33.5, lng: 43.5 },
+            { id: 53, vraag: "Vruchtbare sikkel", antwoord: "Gebied", type: "Gebied", nummer: 23, lat: 34.5, lng: 39.0 },
+            { id: 54, vraag: "Levant", antwoord: "Gebied", type: "Gebied", nummer: 24, lat: 34.0, lng: 36.0 },
+            { id: 55, vraag: "Socotra", antwoord: "Eiland", type: "Eiland", nummer: 25, lat: 12.5, lng: 53.9 },
+        ];
+
+        // --- ICONS (SVG) ---
+        const IconMap = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>;
+        const IconList = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>;
+        const IconArrowLeft = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>;
+        const IconTarget = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>;
+        const IconStar = ({ filled, onClick, className }) => (
+            <svg onClick={onClick} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "gold" : "none"} stroke={filled ? "gold" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`cursor-pointer transition-colors ${filled ? "text-yellow-500 drop-shadow-sm" : "text-slate-300 hover:text-yellow-400"} ${className}`}>
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+        );
+        const IconCheck = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>;
+        const IconX = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
+        const IconArrowRight = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>;
+
+        // --- KAART COMPONENT ---
+        const LeafletMap = ({ markers, mode, currentTargetId, showAnswer, onMarkerClick }) => {
+            const mapRef = useRef(null);
+            const mapInstanceRef = useRef(null);
+            const markersRef = useRef({});
+
+            useEffect(() => {
+                if (mapInstanceRef.current) return;
+                
+                const map = L.map(mapRef.current).setView([30.0, 42.0], 4);
+                
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; OpenStreetMap & CARTO',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                }).addTo(map);
+                mapInstanceRef.current = map;
+            }, []);
+
+            useEffect(() => {
+                if (!mapInstanceRef.current) return;
+                const map = mapInstanceRef.current;
+
+                // Verwijder oude markers
+                Object.values(markersRef.current).forEach(layer => map.removeLayer(layer));
+                markersRef.current = {};
+
+                markers.forEach(item => {
+                    let color = '#3b82f6'; 
+                    if (['Stad'].includes(item.type)) color = '#f97316'; 
+                    if (['Water', 'Rivier', 'Meer (zout)', 'Kanaal', 'Golf'].includes(item.type)) color = '#10b981';
+
+                    let fillColor = color;
+                    let radius = 8;
+                    
+                    if (mode === 'quiz') {
+                         fillColor = '#94a3b8'; // Neutraal grijs
+                         radius = 12;
+                    }
+
+                    const circle = L.circleMarker([item.lat, item.lng], {
+                        color: '#ffffff',
+                        weight: 2,
+                        fillColor: fillColor,
+                        fillOpacity: 0.9,
+                        radius: radius
+                    }).addTo(map);
+
+                    if (mode === 'quiz') {
+                        circle.on('click', () => onMarkerClick(item));
+                    } else {
+                         const content = `
+                            <div class="text-center p-2">
+                                <div class="font-bold text-lg text-slate-800">${item.vraag}</div>
+                                <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">${item.type} (Nr. ${item.nummer})</div>
+                                <div class="text-sm text-slate-600">${item.antwoord}</div>
+                            </div>
+                        `;
+                        circle.bindPopup(content);
+                        circle.bindTooltip(item.vraag, { direction: 'top', offset: [0, -10] });
+                    }
+                    markersRef.current[item.id] = circle;
+                });
+            }, [markers, mode, onMarkerClick]);
+
+            // Feedback visualisatie
+            useEffect(() => {
+                if (mode !== 'quiz' || !markersRef.current) return;
+
+                Object.values(markersRef.current).forEach(layer => {
+                    // Reset
+                    layer.setStyle({ fillColor: '#94a3b8', color: '#fff', weight: 2, radius: 12 });
+                });
+
+                // Als het antwoord getoond moet worden (bij fout)
+                if (showAnswer && currentTargetId) {
+                    const correctLayer = markersRef.current[currentTargetId];
+                    if (correctLayer) {
+                        correctLayer.setStyle({ 
+                            fillColor: '#22c55e', // Groen
+                            color: '#15803d',
+                            weight: 3,
+                            radius: 16 // Groter maken
+                        });
+                        correctLayer.bringToFront();
+                    }
+                }
+            }, [markers, mode, showAnswer, currentTargetId]);
+
+            return <div ref={mapRef} className="w-full h-full z-0 bg-slate-100" />;
+        };
+
+        // --- MAIN APP ---
+        function App() {
+            const [view, setView] = useState('menu'); 
+            const [data, setData] = useState([]);
+            
+            const [starredIds, setStarredIds] = useState(() => {
+                try {
+                    const saved = localStorage.getItem('mo_starred');
+                    return saved ? JSON.parse(saved) : [];
+                } catch (e) { return []; }
+            });
+
+            useEffect(() => {
+                localStorage.setItem('mo_starred', JSON.stringify(starredIds));
+            }, [starredIds]);
+
+            const toggleStar = (id) => {
+                setStarredIds(prev => 
+                    prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+                );
+            };
+
+            const [quizQuestions, setQuizQuestions] = useState([]);
+            const [currentQIndex, setCurrentQIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [feedback, setFeedback] = useState(null); // 'correct' | 'wrong'
+            const [feedbackMsg, setFeedbackMsg] = useState("");
+
+            const startModule = (filterMode, mode) => {
+                let filtered = alldata;
+                if (filterMode === 'starred') filtered = alldata.filter(i => starredIds.includes(i.id));
+                if (filtered.length === 0 && filterMode === 'starred') {
+                    alert("Je hebt nog geen items met een ster gemarkeerd!");
+                    return;
+                }
+                setData(filtered);
+
+                if (mode === 'quiz') {
+                    const shuffled = [...filtered].sort(() => 0.5 - Math.random());
+                    setQuizQuestions(shuffled);
+                    setCurrentQIndex(0);
+                    setScore(0);
+                    setFeedback(null);
+                    setView('quiz');
+                } else if (mode === 'map') {
+                    setView('map');
+                } else {
+                    setView('list');
+                }
+            };
+
+            const nextQuestion = () => {
+                setFeedback(null);
+                setFeedbackMsg("");
+                if (currentQIndex < quizQuestions.length - 1) {
+                    setCurrentQIndex(currentQIndex + 1);
+                } else {
+                    setView('result');
+                }
+            };
+
+            const handleMapClick = (clickedItem) => {
+                if (feedback) return; // Blokkeer klikken als er al feedback is
+
+                const currentQ = quizQuestions[currentQIndex];
+                
+                if (clickedItem.id === currentQ.id) {
+                    // GOED
+                    setFeedback('correct');
+                    setFeedbackMsg("Goed gedaan!");
+                    setScore(s => s + 1);
+                    setTimeout(nextQuestion, 1200); // Auto-advance bij goed
+                } else {
+                    // FOUT - Wacht op actie gebruiker
+                    setFeedback('wrong');
+                    setFeedbackMsg(`Ai! Je klikte op ${clickedItem.vraag}.`);
+                }
+            };
+
+            // --- SCHERMEN ---
+
+            const Menu = () => (
+                <div className="max-w-2xl mx-auto p-6 space-y-8 flex flex-col min-h-screen justify-center">
+                    <div className="text-center">
+                        <h1 className="text-4xl sm:text-6xl font-black text-slate-800 mb-2 tracking-tight">Midden-Oosten <span className="text-blue-600">Master</span></h1>
+                        <p className="text-xl text-slate-500">Jouw interactieve blinde kaart.</p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-blue-100 hover:border-blue-400 transition-all cursor-pointer group" onClick={() => startModule('alles', 'quiz')}>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="p-4 bg-blue-100 rounded-2xl text-blue-600 group-hover:scale-110 transition-transform">
+                                    <IconTarget />
+                                </div>
+                                <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Aanbevolen</span>
+                            </div>
+                            <h2 className="text-3xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Start Grote Mix Quiz</h2>
+                            <p className="text-slate-500 mt-2">Test je kennis van alle landen, steden en natuur door elkaar.</p>
+                        </div>
+
+                        <div className={`bg-white rounded-2xl shadow-sm border-2 p-6 flex items-center justify-between transition-all ${starredIds.length > 0 ? 'border-yellow-200 hover:border-yellow-400 cursor-pointer' : 'border-slate-100 opacity-60'}`} 
+                             onClick={() => starredIds.length > 0 && startModule('starred', 'quiz')}>
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-yellow-50 text-yellow-500 rounded-xl">
+                                    <IconStar filled={true} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-lg text-slate-800">Oefen Moeilijke Items</h3>
+                                    <p className="text-sm text-slate-500">{starredIds.length} items gemarkeerd</p>
+                                </div>
+                            </div>
+                            <div className="bg-slate-50 p-2 rounded-full">
+                                <IconArrowLeft />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                             <button onClick={() => startModule('alles', 'list')} className="bg-white border-2 border-slate-200 p-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition flex flex-col items-center gap-2">
+                                <IconList /> 
+                                <span>Lijst Beheren</span>
+                            </button>
+                            <button onClick={() => startModule('alles', 'map')} className="bg-white border-2 border-slate-200 p-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition flex flex-col items-center gap-2">
+                                <IconMap /> 
+                                <span>Kaart Bekijken</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const MapQuizView = () => {
+                const q = quizQuestions[currentQIndex];
+                const isStarred = starredIds.includes(q.id);
+                
+                return (
+                    <div className="h-screen flex flex-col relative overflow-hidden bg-slate-100">
+                        {/* Header Bar */}
+                        <div className="bg-white px-4 py-3 shadow-sm z-20 flex justify-between items-center">
+                            <button onClick={() => setView('menu')} className="bg-slate-100 p-2 rounded-lg text-slate-600 hover:bg-slate-200 font-bold text-sm flex items-center gap-2">
+                                <IconArrowLeft /> Stop
+                            </button>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold uppercase text-slate-400 hidden sm:inline">Voortgang</span>
+                                <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div className="h-full bg-blue-500 transition-all duration-500" style={{width: `${((currentQIndex) / quizQuestions.length) * 100}%`}}></div>
+                                </div>
+                            </div>
+                            <div className="font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">{score} punten</div>
+                        </div>
+
+                        {/* Vraag Overlay */}
+                        <div className={`absolute top-20 left-1/2 transform -translate-x-1/2 z-[1000] w-11/12 max-w-md pointer-events-none transition-opacity duration-300 ${feedback ? 'opacity-0' : 'opacity-100'}`}>
+                            <div className="bg-white/95 backdrop-blur shadow-2xl rounded-2xl p-6 text-center border-2 border-white pointer-events-auto">
+                                <div className="flex justify-between items-start mb-2">
+                                    <span className="bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded">Zoek op de kaart</span>
+                                    <div onClick={() => toggleStar(q.id)} className="cursor-pointer hover:scale-110 transition-transform" title="Markeer als moeilijk">
+                                        <IconStar filled={isStarred} />
+                                    </div>
+                                </div>
+                                <h2 className="text-2xl sm:text-3xl font-black text-slate-800 mb-1 leading-tight">{q.vraag}</h2>
+                                {q.type === 'Land' && <p className="text-slate-500 text-sm">Hoofdstad: <span className="font-semibold text-slate-700">{q.antwoord}</span></p>}
+                                {q.type === 'Stad' && <p className="text-slate-500 text-sm">Land: <span className="font-semibold text-slate-700">{q.antwoord}</span></p>}
+                            </div>
+                        </div>
+
+                        {/* Feedback Overlay */}
+                        {feedback && (
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[1001] w-full max-w-sm px-4">
+                                <div className={`bg-white rounded-3xl shadow-2xl p-6 text-center pop-in border-4 ${feedback === 'correct' ? 'border-green-100' : 'border-red-100'}`}>
+                                    <div className={`text-6xl mb-4`}>{feedback === 'correct' ? '🎉' : '❌'}</div>
+                                    <h3 className={`text-xl font-bold mb-4 ${feedback === 'correct' ? 'text-green-600' : 'text-red-500'}`}>
+                                        {feedbackMsg}
+                                    </h3>
+                                    
+                                    {feedback === 'wrong' && (
+                                        <div className="space-y-3">
+                                            <p className="text-sm text-slate-400 mb-2">De juiste locatie is nu <span className="text-green-600 font-bold">groen</span> gemarkeerd.</p>
+                                            
+                                            <button 
+                                                onClick={() => toggleStar(q.id)} 
+                                                className={`w-full py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-bold transition-all border-2 
+                                                    ${isStarred 
+                                                        ? 'bg-yellow-50 border-yellow-400 text-yellow-700' 
+                                                        : 'bg-white border-slate-200 text-slate-600 hover:border-yellow-400 hover:text-yellow-600'}`}
+                                            >
+                                                <IconStar filled={isStarred} className="w-5 h-5" />
+                                                {isStarred ? 'Gemarkeerd als moeilijk' : 'Markeer als moeilijk'}
+                                            </button>
+
+                                            <button 
+                                                onClick={nextQuestion} 
+                                                className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 flex items-center justify-center gap-2"
+                                            >
+                                                Volgende Vraag <IconArrowRight />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Kaart */}
+                        <div className="flex-1 relative z-10">
+                            <LeafletMap 
+                                markers={data} 
+                                mode="quiz" 
+                                currentTargetId={q.id}
+                                showAnswer={feedback === 'wrong'}
+                                onMarkerClick={handleMapClick}
+                            />
+                        </div>
+                    </div>
+                );
+            };
+
+            const ListView = () => (
+                <div className="max-w-3xl mx-auto p-4 sm:p-6 bg-slate-50 min-h-screen">
+                    <div className="flex items-center justify-between mb-6 sticky top-0 bg-slate-50/90 backdrop-blur py-4 z-10 border-b border-slate-200">
+                        <button onClick={() => setView('menu')} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-bold bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm transition">
+                            <IconArrowLeft /> Terug
+                        </button>
+                        <h2 className="text-xl font-bold text-slate-800">Lijst & Favorieten</h2>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <table className="w-full text-left border-collapse">
+                            <thead className="bg-slate-50 border-b border-slate-100">
+                                <tr>
+                                    <th className="p-4 w-12 text-center">⭐</th>
+                                    <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Nr</th>
+                                    <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Naam</th>
+                                    <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Type</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {alldata.map(item => {
+                                    const isStarred = starredIds.includes(item.id);
+                                    return (
+                                        <tr key={item.id} className={`hover:bg-slate-50 transition ${isStarred ? 'bg-yellow-50/30' : ''}`}>
+                                            <td className="p-4 text-center">
+                                                <div className="flex justify-center" onClick={() => toggleStar(item.id)}>
+                                                    <IconStar filled={isStarred} />
+                                                </div>
+                                            </td>
+                                            <td className="p-4 font-mono text-slate-400 text-sm">{item.nummer}</td>
+                                            <td className="p-4">
+                                                <div className="font-bold text-slate-800">{item.vraag}</div>
+                                                <div className="text-sm text-slate-500">{item.antwoord}</div>
+                                            </td>
+                                            <td className="p-4 hidden sm:table-cell">
+                                                <span className={`px-2 py-1 rounded-md text-xs font-bold uppercase 
+                                                    ${item.type === 'Land' ? 'bg-blue-100 text-blue-700' : 
+                                                      item.type === 'Stad' ? 'bg-orange-100 text-orange-700' : 
+                                                      'bg-emerald-100 text-emerald-700'}`}>
+                                                    {item.type}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+            
+            const ResultView = () => (
+                <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+                    <div className="bg-white rounded-3xl shadow-xl p-8 sm:p-12 max-w-md w-full text-center">
+                        <div className="text-7xl mb-6 animate-bounce">🏆</div>
+                        <h2 className="text-3xl font-black text-slate-800 mb-2">Geweldig!</h2>
+                        <p className="text-slate-500 mb-8">Je hebt de quiz afgerond.</p>
+                        
+                        <div className="bg-slate-100 rounded-2xl p-6 mb-8">
+                            <div className="text-xs text-slate-500 uppercase font-bold mb-1 tracking-wider">Jouw Score</div>
+                            <div className="text-5xl font-black text-blue-600">{score} <span className="text-2xl text-slate-400">/ {data.length}</span></div>
+                        </div>
+
+                        <button onClick={() => setView('menu')} className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 hover:scale-[1.02] transition shadow-lg">
+                            Terug naar Menu
+                        </button>
+                    </div>
+                </div>
+            );
+
+            // Simple map view (just render map component with back button)
+            const SimpleMapView = () => (
+                <div className="h-screen flex flex-col">
+                    <div className="bg-white p-4 shadow-sm z-20 flex justify-between items-center">
+                        <button onClick={() => setView('menu')} className="flex items-center gap-2 text-slate-600 font-bold bg-slate-100 px-4 py-2 rounded-lg hover:bg-slate-200">
+                            <IconArrowLeft /> Menu
+                        </button>
+                        <h2 className="font-bold text-slate-700">Ontdekken</h2>
+                    </div>
+                    <div className="flex-1 relative z-10">
+                        <LeafletMap markers={data} mode="learn" onMarkerClick={() => {}} />
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="antialiased text-slate-900">
+                    {view === 'menu' && <Menu />}
+                    {view === 'quiz' && <MapQuizView />}
+                    {view === 'result' && <ResultView />}
+                    {view === 'list' && <ListView />}
+                    {view === 'map' && <SimpleMapView />}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
