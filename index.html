@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Midden-Oosten Master</title>
+    <title>Midden-Oosten Quiz</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -43,65 +43,33 @@
         // --- DATA ---
         const alldata = [
             // Landen (Blauw)
-            { id: 1, vraag: "Egypte", antwoord: "Cairo", type: "Land", nummer: 1, lat: 26.8206, lng: 30.8025 },
-            { id: 2, vraag: "Cyprus", antwoord: "Nicosia", type: "Land", nummer: 2, lat: 35.1264, lng: 33.4299 },
-            { id: 3, vraag: "Turkije", antwoord: "Ankara", type: "Land", nummer: 3, lat: 38.9637, lng: 35.2433 },
-            { id: 4, vraag: "Georgië", antwoord: "Tbilisi", type: "Land", nummer: 4, lat: 42.3154, lng: 43.3569 },
-            { id: 5, vraag: "Azerbeidzjan", antwoord: "Bakoe", type: "Land", nummer: 5, lat: 40.1431, lng: 47.5769 },
-            { id: 6, vraag: "Armenië", antwoord: "Yerevan", type: "Land", nummer: 6, lat: 40.0691, lng: 45.0382 },
-            { id: 7, vraag: "Iran", antwoord: "Teheran", type: "Land", nummer: 7, lat: 32.4279, lng: 53.6880 },
-            { id: 8, vraag: "Irak", antwoord: "Bagdad", type: "Land", nummer: 8, lat: 33.2232, lng: 43.6793 },
-            { id: 9, vraag: "Syrië", antwoord: "Damaskus", type: "Land", nummer: 9, lat: 34.8021, lng: 38.9968 },
-            { id: 10, vraag: "Libanon", antwoord: "Beirut", type: "Land", nummer: 10, lat: 33.8547, lng: 35.8623 },
-            { id: 11, vraag: "Israël", antwoord: "Jeruzalem", type: "Land", nummer: 11, lat: 31.0461, lng: 34.8516 },
-            { id: 12, vraag: "Palestina", antwoord: "(Jeruzalem)", type: "Gebied", nummer: 12, lat: 31.9522, lng: 35.2332 },
-            { id: 13, vraag: "Jordanië", antwoord: "Amman", type: "Land", nummer: 13, lat: 30.5852, lng: 36.2384 },
-            { id: 14, vraag: "Saudi-Arabië", antwoord: "Riad", type: "Land", nummer: 14, lat: 23.8859, lng: 45.0792 },
-            { id: 15, vraag: "Jemen", antwoord: "Sana", type: "Land", nummer: 15, lat: 15.5527, lng: 48.5164 },
-            { id: 16, vraag: "Oman", antwoord: "Masqat", type: "Land", nummer: 16, lat: 21.4735, lng: 55.9754 },
-            { id: 17, vraag: "Koeweit", antwoord: "Koeweit-stad", type: "Land", nummer: 17, lat: 29.3117, lng: 47.4818 },
-            { id: 18, vraag: "Bahrein", antwoord: "Manama", type: "Land", nummer: 18, lat: 26.0667, lng: 50.5577 },
-            { id: 19, vraag: "Verenigde Arabische Emiraten", antwoord: "Abu Dhabi", type: "Land", nummer: 19, lat: 23.4241, lng: 53.8478 },
-            { id: 20, vraag: "Qatar", antwoord: "Doha", type: "Land", nummer: 20, lat: 25.3548, lng: 51.1839 },
-            { id: 21, vraag: "\"Koerdistan\"", antwoord: "\"Arbil\"", type: "Gebied", nummer: 21, lat: 36.5, lng: 44.5 },
+{ id: 1, vraag: "Armenië", antwoord: "Yerevan", type: "Land", nummer: 1, lat: 40.0691, lng: 45.0382 },
+{ id: 2, vraag: "Iran", antwoord: "Teheran", type: "Land", nummer: 2, lat: 32.4279, lng: 53.6880 },
+{ id: 3, vraag: "Irak", antwoord: "Bagdad", type: "Land", nummer: 3, lat: 33.2232, lng: 43.6793 },
+{ id: 4, vraag: "Syrië", antwoord: "Damaskus", type: "Land", nummer: 4, lat: 34.8021, lng: 38.9968 },
+{ id: 5, vraag: "Libanon", antwoord: "Beirut", type: "Land", nummer: 5, lat: 33.8547, lng: 35.8623 },
+{ id: 6, vraag: "Israël", antwoord: "Jeruzalem", type: "Land", nummer: 6, lat: 31.0461, lng: 34.8516 },
+{ id: 7, vraag: "Jordanië", antwoord: "Amman", type: "Land", nummer: 7, lat: 30.5852, lng: 36.2384 },
+{ id: 8, vraag: "Saudi-Arabië", antwoord: "Riad", type: "Land", nummer: 8, lat: 23.8859, lng: 45.0792 },
+{ id: 9, vraag: "Jemen", antwoord: "Sana", type: "Land", nummer: 9, lat: 15.5527, lng: 48.5164 },
+{ id: 10, vraag: "Oman", antwoord: "Masqat", type: "Land", nummer: 10, lat: 21.4735, lng: 55.9754 },
+{ id: 11, vraag: "Bahrein", antwoord: "Manama", type: "Land", nummer: 11, lat: 26.0667, lng: 50.5577 },
+{ id: 12, vraag: "Qatar", antwoord: "Doha", type: "Land", nummer: 12, lat: 25.3548, lng: 51.1839 },
 
-            // Steden (Oranje)
-            { id: 22, vraag: "Mekka", antwoord: "Saudi-Arabië", type: "Stad", nummer: 22, lat: 21.3891, lng: 39.8579 },
-            { id: 23, vraag: "Medina", antwoord: "Saudi-Arabië", type: "Stad", nummer: 23, lat: 24.5247, lng: 39.5692 },
-            { id: 24, vraag: "Nazareth", antwoord: "Israël", type: "Stad", nummer: 24, lat: 32.6996, lng: 35.3035 },
-            { id: 25, vraag: "Tel Aviv", antwoord: "Israël", type: "Stad", nummer: 25, lat: 32.0853, lng: 34.7818 },
-            { id: 26, vraag: "Gaza", antwoord: "Palestina (Gazastrook)", type: "Stad", nummer: 26, lat: 31.5, lng: 34.4667 },
-            { id: 27, vraag: "Dubai", antwoord: "Verenigde Arabische Emiraten", type: "Stad", nummer: 27, lat: 25.2048, lng: 55.2708 },
-            { id: 28, vraag: "Petra (ruïne)", antwoord: "Jordanië", type: "Stad", nummer: 28, lat: 30.3285, lng: 35.4444 },
-            { id: 29, vraag: "Uruk (ruïne)", antwoord: "Irak", type: "Stad", nummer: 29, lat: 31.3222, lng: 45.6361 },
-            { id: 30, vraag: "Babylon (ruïne)", antwoord: "Irak", type: "Stad", nummer: 30, lat: 32.5364, lng: 44.4208 },
+// Steden (Oranje)
+{ id: 13, vraag: "Yerevan", antwoord: "Armenië", type: "Stad", nummer: 13, lat: 40.1792, lng: 44.4991 },
+{ id: 14, vraag: "Teheran", antwoord: "Iran", type: "Stad", nummer: 14, lat: 35.6892, lng: 51.3890 },
+{ id: 15, vraag: "Bagdad", antwoord: "Irak", type: "Stad", nummer: 15, lat: 33.3152, lng: 44.3661 },
+{ id: 16, vraag: "Damaskus", antwoord: "Syrië", type: "Stad", nummer: 16, lat: 33.5138, lng: 36.2765 },
+{ id: 17, vraag: "Beirut", antwoord: "Libanon", type: "Stad", nummer: 17, lat: 33.8938, lng: 35.5018 },
+{ id: 18, vraag: "Jeruzalem", antwoord: "Israël", type: "Stad", nummer: 18, lat: 31.7683, lng: 35.2137 },
+{ id: 19, vraag: "Amman", antwoord: "Jordanië", type: "Stad", nummer: 19, lat: 31.9454, lng: 35.9284 },
+{ id: 20, vraag: "Riad", antwoord: "Saudi-Arabië", type: "Stad", nummer: 20, lat: 24.7136, lng: 46.6753 },
+{ id: 21, vraag: "Sana", antwoord: "Jemen", type: "Stad", nummer: 21, lat: 15.3694, lng: 44.1910 },
+{ id: 22, vraag: "Masqat", antwoord: "Oman", type: "Stad", nummer: 22, lat: 23.5880, lng: 58.3829 },
+{ id: 23, vraag: "Manama", antwoord: "Bahrein", type: "Stad", nummer: 23, lat: 26.2235, lng: 50.5876 },
+{ id: 24, vraag: "Doha", antwoord: "Qatar", type: "Stad", nummer: 24, lat: 25.2854, lng: 51.5310 },
 
-            // Natuurkundig (Groen/Blauw)
-            { id: 31, vraag: "Indische Oceaan", antwoord: "Oceaan", type: "Water", nummer: 1, lat: 10.0, lng: 65.0 },
-            { id: 32, vraag: "Middellandse Zee", antwoord: "Zee", type: "Water", nummer: 2, lat: 34.5, lng: 28.0 },
-            { id: 33, vraag: "Levantijnse Zee", antwoord: "Zee", type: "Water", nummer: 3, lat: 33.0, lng: 33.5 },
-            { id: 34, vraag: "Zwarte Zee", antwoord: "Zee", type: "Water", nummer: 4, lat: 43.0, lng: 35.0 },
-            { id: 35, vraag: "Rode Zee", antwoord: "Zee", type: "Water", nummer: 5, lat: 22.0, lng: 38.0 },
-            { id: 36, vraag: "Arabische Zee", antwoord: "Zee", type: "Water", nummer: 6, lat: 18.0, lng: 62.0 },
-            { id: 37, vraag: "Perzische Golf", antwoord: "Golf", type: "Water", nummer: 7, lat: 27.0, lng: 51.0 },
-            { id: 38, vraag: "Golf van Aden", antwoord: "Golf", type: "Water", nummer: 8, lat: 12.5, lng: 48.0 },
-            { id: 39, vraag: "Golf van Oman", antwoord: "Golf", type: "Water", nummer: 9, lat: 24.5, lng: 58.0 },
-            { id: 40, vraag: "Kaspische Zee", antwoord: "Meer (zout)", type: "Water", nummer: 10, lat: 40.0, lng: 51.0 },
-            { id: 41, vraag: "Dode Zee", antwoord: "Meer (zout)", type: "Water", nummer: 11, lat: 31.5, lng: 35.5 },
-            { id: 42, vraag: "Eufraat", antwoord: "Rivier", type: "Rivier", nummer: 12, lat: 34.0, lng: 40.5 },
-            { id: 43, vraag: "Tigris", antwoord: "Rivier", type: "Rivier", nummer: 13, lat: 35.0, lng: 43.5 },
-            { id: 44, vraag: "Jordaan", antwoord: "Rivier", type: "Rivier", nummer: 14, lat: 32.2, lng: 35.56 },
-            { id: 45, vraag: "Sinaï", antwoord: "Woestijn", type: "Landschap", nummer: 15, lat: 29.5, lng: 33.8 },
-            { id: 46, vraag: "Grote Arabische Woestijn", antwoord: "Woestijn", type: "Landschap", nummer: 16, lat: 20.0, lng: 50.0 },
-            { id: 47, vraag: "Kaukasus", antwoord: "Gebergte", type: "Landschap", nummer: 17, lat: 42.5, lng: 44.0 },
-            { id: 48, vraag: "Ararat", antwoord: "Berg", type: "Landschap", nummer: 18, lat: 39.7, lng: 44.3 },
-            { id: 49, vraag: "Arabië", antwoord: "Schiereiland", type: "Landschap", nummer: 19, lat: 24.0, lng: 45.0 },
-            { id: 50, vraag: "Anatolië", antwoord: "Schiereiland", type: "Landschap", nummer: 20, lat: 39.0, lng: 33.0 },
-            { id: 51, vraag: "Suezkanaal", antwoord: "Kanaal", type: "Water", nummer: 21, lat: 30.6, lng: 32.3 },
-            { id: 52, vraag: "Mesopotamië", antwoord: "Gebied", type: "Gebied", nummer: 22, lat: 33.5, lng: 43.5 },
-            { id: 53, vraag: "Vruchtbare sikkel", antwoord: "Gebied", type: "Gebied", nummer: 23, lat: 34.5, lng: 39.0 },
-            { id: 54, vraag: "Levant", antwoord: "Gebied", type: "Gebied", nummer: 24, lat: 34.0, lng: 36.0 },
-            { id: 55, vraag: "Socotra", antwoord: "Eiland", type: "Eiland", nummer: 25, lat: 12.5, lng: 53.9 },
         ];
 
         // --- ICONS (SVG) ---
